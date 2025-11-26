@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block title %}Buscar Contenido - Sistema Educativo{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2 class="mb-4"><i class="bi bi-search"></i> Búsqueda de Contenido Educativo</h2>
+        
+        <div class="card shadow mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-search"></i> Realizar Búsqueda</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="{{ form.palabra_clave.id_for_label }}" class="form-label">{{ form.palabra_clave.label }}</label>
+                        {{ form.palabra_clave }}
+                        {% if form.palabra_clave.errors %}
+                            <div class="text-danger">{{ form.palabra_clave.errors }}</div>
+                        {% endif %}
+                        <small class="form-text text-muted">
+                            Ingresa una palabra clave para buscar información en Wikipedia.
+                        </small>
+                    </div>
+                    <button type="submit" class="btn btn-info">
+                        <i class="bi bi-search"></i> Buscar
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        {% if resultados %}
+            {% for resultado in resultados %}
+            <div class="card shadow mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-file-text"></i> Resultados para: {{ resultado.palabra_clave }}</h5>
+                </div>
+                <div class="card-body">
+                    <h5>{{ resultado.titulo }}</h5>
+                    <p><a href="{{ resultado.url }}" target="_blank" class="text-decoration-none">
+                        <i class="bi bi-link-45deg"></i> Ver en Wikipedia
+                    </a></p>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Contenido Encontrado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for parrafo in resultado.parrafos %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>{{ parrafo|truncatewords:50 }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <form method="post" action="{% url 'enviar_resultados' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="palabra_clave" value="{{ resultado.palabra_clave }}">
+                        <input type="hidden" name="titulo" value="{{ resultado.titulo }}">
+                        <input type="hidden" name="url" value="{{ resultado.url }}">
+                        {% for parrafo in resultado.parrafos %}
+                            <input type="hidden" name="parrafos" value="{{ parrafo }}">
+                        {% endfor %}
+                        <button type="submit" class="btn btn-primary mt-3">
+                            <i class="bi bi-envelope"></i> Enviar Resultados por Correo
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
